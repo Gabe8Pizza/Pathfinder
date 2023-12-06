@@ -14,7 +14,7 @@ SECONDS_FONT = pygame.font.SysFont('comicsans', 30)
 GAMEOVER_FONT = pygame.font.SysFont('comicsans', 30)
 
 DEATH_SOUND = pygame.mixer.Sound(os.path.join('gameItems', 'boom.mp3'))
-MUSIC = pygame.mixer.Sound(os.path.join('gameItems', 'music.mp3'))
+MUSIC = pygame.mixer.Sound(os.path.join('gameItems', 'music.wav'))
 AHH = pygame.mixer.Sound(os.path.join('gameItems', 'ahh.mp3'))
 LAUGH = pygame.mixer.Sound(os.path.join('gameItems', 'kingLaugh.mp3'))
 
