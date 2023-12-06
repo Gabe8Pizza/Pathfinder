@@ -1,6 +1,7 @@
 import pygame
 import os
 import random
+import csv
 
 pygame.mixer.init()
 pygame.font.init()
@@ -67,6 +68,58 @@ def shipMovement(keys, Ship_Hitbox):
     # if keys[pygame.K_SPACE]:
         # LAUGH.play()
 
+def getUserName():
+    user_input = ""
+    input_active = True
+
+    while input_active:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    input_active = False
+                elif event.key == pygame.K_BACKSPACE:
+                    user_input = user_input[:-1]
+                else:
+                    user_input += event.unicode
+
+        # Clear the screen
+        WIN.fill(WHITE)
+
+        # Display user input
+        input_text = GAMEOVER_FONT.render("Enter your name: " + user_input, True, BLACK)
+        WIN.blit(input_text, (WIDTH // 2 - input_text.get_width() // 2, HEIGHT // 2))
+
+        # Update the display
+        pygame.display.update()
+    return user_input
+
+def read_high_scores():
+    # Read high scores from the CSV file
+    try:
+        with open('high_scores.csv', 'r') as file:
+            reader = csv.reader(file)
+            scores = [row for row in reader]
+    except FileNotFoundError:
+        scores = []
+
+    return scores
+
+def SaveHighScore(score):
+    high_scores = read_high_scores()
+    # Check if the new score is a high score
+    for index, item in enumerate(high_scores):
+        print(f"\n{item[1]} {index}")
+        if float(item[1]) < score and index <= 2:
+            name = getUserName()
+            high_scores[index] = [name, score]
+
+        with open('high_scores.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerows(high_scores)
+
 
 def drawGameOver(Death_Time):
     WIN.fill(RED)
@@ -93,44 +146,75 @@ def drawWindow(Ship_Hitbox, Astroid_Hitbox, Num_Astroids, seconds):
 
     pygame.display.update()
 
+def drawMenu():
+    WIN.fill(WHITE)
+    # Draw widgets
+    label = GAMEOVER_FONT.render("Welcome to Angry Astroids!", True, BLACK)
+    WIN.blit(label, (WIDTH // 2 - label.get_width() // 2, HEIGHT // 4 - 50 ))
+
+    # Draw button
+    button = GAMEOVER_FONT.render("Press Space to Start", True, BLACK)
+    WIN.blit(button, (WIDTH // 2 - button.get_width() // 2, HEIGHT // 2 + 10))
+
+    top_scores = read_high_scores()
+
+    for i, (name, score) in enumerate(top_scores):
+        text = GAMEOVER_FONT.render(f"{i + 1}. {name}: {score}", True, BLACK)
+        WIN.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 4 + i * 50))
+
+    pygame.display.update()
 
 def main():
     Ship_Hitbox = pygame.Rect(300, HEIGHT - SHIP_HEIGHT-5, SHIP_WIDTH, SHIP_HEIGHT)
-    start_ticks = pygame.time.get_ticks()
     Death_Time = 0
 
     Num_Astroids = []
 
     clock = pygame.time.Clock()
+
+    Menu = True
     run = True
     while run:
         clock.tick(FPS)
-        seconds = (pygame.time.get_ticks() - start_ticks) / 1000
+
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-                pygame.quit()
+                if event.type == pygame.QUIT:
+                    run = False
+                    pygame.quit()
 
-            if event.type == ASTROID_HIT:   # player is hit and loses
-                Death_Time = seconds
-                DEATH_SOUND.play()
-                # AHH.play()
+                if event.type == ASTROID_HIT:   # player is hit and loses
+                    Death_Time = seconds
+                    DEATH_SOUND.play()
+                    # AHH.play()
 
-        if len(Num_Astroids) < MAX_ASTOIRDS:
-            Astroid_Hitbox = pygame.Rect(random.randint(0, WIDTH-ASTROID_WIDTH),
-                                         random.randint(-HEIGHT, -ASTROID_HEIGHT), ASTROID_WIDTH-20, ASTROID_HEIGHT-20)
-            Num_Astroids.append(Astroid_Hitbox)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        start_ticks = pygame.time.get_ticks()
+                        Menu = False
 
-            if Death_Time > 0:
-                drawGameOver(Death_Time)
-                main()
+        if Menu == False:
+            seconds = (pygame.time.get_ticks() - start_ticks) / 1000
+            
 
-        # pygame.time.get_ticks
-        keys_pressed = pygame.key.get_pressed()
-        astroidShower(Astroid_Hitbox, Num_Astroids, Ship_Hitbox)
-        shipMovement(keys_pressed, Ship_Hitbox)
-        drawWindow(Ship_Hitbox, Astroid_Hitbox, Num_Astroids, seconds)
+            if len(Num_Astroids) < MAX_ASTOIRDS:
+                Astroid_Hitbox = pygame.Rect(random.randint(0, WIDTH-ASTROID_WIDTH),
+                                             random.randint(-HEIGHT, -ASTROID_HEIGHT), ASTROID_WIDTH-20, ASTROID_HEIGHT-20)
+                Num_Astroids.append(Astroid_Hitbox)
 
+                if Death_Time > 0:
+                    drawGameOver(Death_Time)
+                    SaveHighScore(Death_Time)
+                    main()
+
+            # pygame.time.get_ticks
+            keys_pressed = pygame.key.get_pressed()
+            astroidShower(Astroid_Hitbox, Num_Astroids, Ship_Hitbox)
+            shipMovement(keys_pressed, Ship_Hitbox)
+
+            drawWindow(Ship_Hitbox, Astroid_Hitbox, Num_Astroids, seconds)
+
+        else:
+            drawMenu()
 
 if __name__ == "__main__":
     main()
