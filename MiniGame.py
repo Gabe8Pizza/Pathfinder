@@ -88,6 +88,10 @@ def getUserName():
         # Clear the screen
         WIN.fill(WHITE)
 
+        HighScore_Text = GAMEOVER_FONT.render("HIGHSCORE!!!", 1, BLACK)
+        WIN.blit(HighScore_Text, (WIDTH/2 - HighScore_Text.get_width()/2, HEIGHT/2 - HighScore_Text.get_height()))
+
+
         # Display user input
         input_text = GAMEOVER_FONT.render("Enter your name: " + user_input, True, BLACK)
         WIN.blit(input_text, (WIDTH // 2 - input_text.get_width() // 2, HEIGHT // 2))
@@ -116,9 +120,10 @@ def SaveHighScore(score):
             name = getUserName()
             high_scores[index] = [name, score]
 
-        with open('high_scores.csv', 'w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerows(high_scores)
+            with open('high_scores.csv', 'w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerows(high_scores)
+            break
 
 
 def drawGameOver(Death_Time):
